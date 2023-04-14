@@ -1,14 +1,22 @@
 package handler
 
 import (
+	"io"
 	"io/ioutil"
 	"net/http"
 )
 
-func loadfile(writer http.ResponseWriter, request *http.Request) {
+func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == "GET" {
-		ioutil.ReadFile("./static/view/index.html")
+		//返回上传页面
+		data, err := ioutil.ReadFile("./static/view/upload.html")
+		if err != nil {
+			io.WriteString(writer, "interr success")
+			return
+		}
+
 	} else if request.Method == "POST" {
+		//接收文件流
 
 	}
 }
