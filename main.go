@@ -13,9 +13,10 @@ func main() {
 
 	//第一个路径需要添加 `/`
 	http.HandleFunc("/file/upload", handler.UploadHandler)
-	http.HandleFunc("file/upload/suc", handler.UploadHandler)
-	err := http.ListenAndServe(":8080", nil)
+	http.HandleFunc("/file/upload/suc", handler.UploadSucHandler)
+	http.HandleFunc("/file/meta", handler.GetFileMetaHandler)
+	err := http.ListenAndServe(":8081", nil)
 	if err != nil {
-		fmt.Print("failed to start server ,err: %s", err.Error())
+		fmt.Printf("failed to start server ,err: %s", err.Error())
 	}
 }

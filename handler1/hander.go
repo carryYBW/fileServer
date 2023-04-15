@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fileserver/meta"
 	"fileserver/util"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"time"
 )
 
+// 文件上传
 func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 	fmt.Print("handler")
 	if request.Method == "GET" {
@@ -36,7 +38,9 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		fileMeta := meta.FileMeta{
 			Filename: head.Filename,
 			Location: "./static/tmp/" + head.Filename,
-			UploadAt: time.Now().Format("2000/01/01 24:00:00"),
+			// UploadAt: time.Now().Format("2000-01-01 24:00:00"),这个有问题
+			UploadAt: time.Now().Format("2006-01-02 15:04:05"),
+			//
 		}
 		//os.Getwd() 可以获取当前工作目录，是多变的，问价的存储应该选择 绝对路径  实际项目中可以使用  os.mkdir 创建一个绝对路径文件目录。在存储文件
 		//这里先使用  选相对路径，存储在项目路径下 便于查看
@@ -66,6 +70,22 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 
 	}
 }
+
+// 上传已完成
 func UploadSucHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "Upload finshed")
+}
+
+// 获取文件元信息
+func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	filehash := r.Form["filehash"][0]
+	fmeta := meta.GetFileMeta(filehash)
+	data, err := json.Marshal(fmeta)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(data)
 }

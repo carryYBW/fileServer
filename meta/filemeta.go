@@ -1,5 +1,7 @@
 package meta
 
+import "fmt"
+
 // 文件元信息结构
 type FileMeta struct {
 	//文件的唯一标识
@@ -21,6 +23,7 @@ func init() {
 // 新增/更新文件元信息
 func UpdateFileMeta(f FileMeta) {
 	fileMetas[f.FileSha1] = f
+	fmt.Println(f)
 }
 
 // 通过 fileSha1 获取文件的元信息
