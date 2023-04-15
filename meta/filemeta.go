@@ -30,3 +30,8 @@ func UpdateFileMeta(f FileMeta) {
 func GetFileMeta(fileSha1 string) FileMeta {
 	return fileMetas[fileSha1]
 }
+
+//删除  实际环境中 要考虑 多线程
+func RemoveFileMeta(fileSha1 string) {
+	delete(fileMetas, fileSha1)
+}
