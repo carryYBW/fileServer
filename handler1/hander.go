@@ -89,3 +89,28 @@ func GetFileMetaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(data)
 }
+
+// 文件下载接口
+func DownloadHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	fsha1 := r.Form.Get("filehash")
+	fm := meta.GetFileMeta(fsha1)
+
+	f, err := os.Open(fm.Location)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer f.Close()
+	data, err := ioutil.ReadFile(fm.Location)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	//浏览器识别是文件，可以下载。。这通常用于传输文件或其他二进制数据。当客户端收到这个响应时，它会将响应体中的数据保存为一个二进制文件，而不会尝试解析它。
+	w.Header().Set("Content-Type", "application/octect-stream")
+	w.Header().Set("Content-Disposition", "attachment; filename="+fm.Filename)
+	w.Write(data)
+
+}
