@@ -110,7 +110,53 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	//浏览器识别是文件，可以下载。。这通常用于传输文件或其他二进制数据。当客户端收到这个响应时，它会将响应体中的数据保存为一个二进制文件，而不会尝试解析它。
 	w.Header().Set("Content-Type", "application/octect-stream")
+	//设置文件名
 	w.Header().Set("Content-Disposition", "attachment; filename="+fm.Filename)
 	w.Write(data)
 
+}
+
+// 文件修改  重命名
+func FileMetaUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+
+	opType := r.Form.Get("op")
+	fileSha1 := r.Form.Get("filehash")
+	newFileName := r.Form.Get("filename")
+
+	if opType != "0" {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+	curFileMeta := meta.GetFileMeta(fileSha1)
+	curFileMeta.Filename = newFileName
+	meta.UpdateFileMeta(curFileMeta)
+
+	data, err := json.Marshal(curFileMeta)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+
+}
+
+// 文件删除
+func FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	fileSha1 := r.Form.Get("filehash")
+
+	fmeta := meta.GetFileMeta(fileSha1)
+
+	// 物理删除
+	os.Remove(fmeta.Location)
+	//逻辑删除
+	meta.RemoveFileMeta(fileSha1)
+
+	w.WriteHeader(http.StatusOK)
 }
