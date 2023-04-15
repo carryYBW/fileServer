@@ -5,7 +5,7 @@ type FileMeta struct {
 	//文件的唯一标识
 	FileSha1 string
 	Filename string
-	FileSize string
+	FileSize int64
 	Location string
 	UploadAt string
 }

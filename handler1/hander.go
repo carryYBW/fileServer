@@ -1,11 +1,14 @@
 package handler
 
 import (
+	"fileserver/meta"
+	"fileserver/util"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 )
 
 func UploadHandler(writer http.ResponseWriter, request *http.Request) {
@@ -29,19 +32,35 @@ func UploadHandler(writer http.ResponseWriter, request *http.Request) {
 		}
 		defer file.Close()
 
+		//初始化 filemeta信息
+		fileMeta := meta.FileMeta{
+			Filename: head.Filename,
+			Location: "./static/tmp/" + head.Filename,
+			UploadAt: time.Now().Format("2000/01/01 24:00:00"),
+		}
+		//os.Getwd() 可以获取当前工作目录，是多变的，问价的存储应该选择 绝对路径  实际项目中可以使用  os.mkdir 创建一个绝对路径文件目录。在存储文件
+		//这里先使用  选相对路径，存储在项目路径下 便于查看
+
 		// "./static/tmp/" 这个目录之前就要存在
-		newFile, err := os.Create("./static/tmp/" + head.Filename)
+		// newFile, err := os.Create("./static/tmp/" + head.Filename)
+		newFile, err := os.Create(fileMeta.Location)
 
 		if err != nil {
 			fmt.Printf("Failed to ceate file  err: %s\n", err.Error())
 			return
 		}
 		defer newFile.Close()
-		_, err = io.Copy(newFile, file)
+
+		fileMeta.FileSize, err = io.Copy(newFile, file)
 		if err != nil {
 			fmt.Printf("Failed to copy file  err: %s\n", err.Error())
 			return
 		}
+		//将文件指针 复原  指向文件开头
+		newFile.Seek(0, 0)
+		fileMeta.FileSha1 = util.FileSha1(newFile)
+		//完成filemeta 信息的填充
+		meta.UpdateFileMeta(fileMeta)
 
 		http.Redirect(writer, request, "/file/upload/suc", http.StatusFound)
 
