@@ -10,9 +10,10 @@ import (
 
 func main() {
 	fmt.Print("文件系统")
+
 	//第一个路径需要添加 `/`
 	http.HandleFunc("/file/upload", handler.UploadHandler)
-	http.HandleFunc("file/upload/suc",handler.UploadHandler)
+	http.HandleFunc("file/upload/suc", handler.UploadHandler)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Print("failed to start server ,err: %s", err.Error())
