@@ -1,6 +1,9 @@
 package meta
 
-import "fmt"
+import (
+	mydb "fileserver/db"
+	"fmt"
+)
 
 // 文件元信息结构
 type FileMeta struct {
@@ -26,12 +29,32 @@ func UpdateFileMeta(f FileMeta) {
 	fmt.Println(f)
 }
 
+// 新增/更新文件元信息到 数据库
+func UpdateFileMetaDB(f FileMeta) bool {
+	return mydb.OnFileUploadFinished(f.FileSha1, f.Filename, f.FileSize, f.Location)
+}
+
 // 通过 fileSha1 获取文件的元信息
 func GetFileMeta(fileSha1 string) FileMeta {
 	return fileMetas[fileSha1]
 }
 
-//删除  实际环境中 要考虑 多线程
+// 通过 fileSha1 获取文件的元信息
+func GetFileMetaDB(fileSha1 string) (FileMeta, error) {
+	tfile, err := mydb.GetFileMeta(fileSha1)
+
+	if err != nil {
+		return FileMeta{}, err
+	}
+	fMeta := FileMeta{}
+	fMeta.FileSha1 = tfile.FileHash
+	fMeta.Filename = tfile.FileName.String
+	fMeta.FileSize = tfile.FileSize.Int64
+	fMeta.Location = tfile.FileAddr.String
+	return fMeta, nil
+}
+
+// 删除  实际环境中 要考虑 多线程
 func RemoveFileMeta(fileSha1 string) {
 	delete(fileMetas, fileSha1)
 }
