@@ -48,14 +48,14 @@ func GetFileMeta(fileHash string) (*TableFile, error) {
 	stmt, err := mydb.DBConn().Prepare(
 		"select file_sha1,file_name,file_size,file_addr from tbl_file where file_sha1=? and status=1 limit 1")
 	if err != nil {
-		fmt.Println(err.Error)
+		fmt.Println(err.Error())
 		return nil, err
 	}
 	defer stmt.Close()
 	tfile := TableFile{}
 	err = stmt.QueryRow(fileHash).Scan(&tfile.FileHash, &tfile.FileName, &tfile.FileSize, &tfile.FileAddr)
 	if err != nil {
-		fmt.Println(err.Error)
+		fmt.Println(err.Error())
 		return nil, err
 	}
 	return &tfile, nil
