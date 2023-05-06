@@ -65,12 +65,64 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//3.登录成功后，重定向到首页
 
-	w.Write([]byte("http://" + r.Host + "/static/view/home.html"))
+	// w.Write([]byte("http://" + r.Host + "/static/view/home.html"))
+	resp := util.RespMsg{
+		Code: 0,
+		Msg:  "OK",
+		Data: struct {
+			Location string
+			Username string
+			Token    string
+		}{
+			Location: "http://" + r.Host + "/static/view/home.html",
+			Username: username,
+			Token:    token,
+		},
+	}
+	w.Write(resp.JSONBytes())
 
 }
 
+// 查询用户信息
+func UserInfoHandler(w http.ResponseWriter, r *http.Request) {
+	//1.解析参数
+	r.ParseForm()
+	username := r.Form.Get("username")
+	token := r.Form.Get("token")
+	//2.校验token
+	if !isTokenValid(token) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	//3.查询用户信息
+	user, err := dblayer.GetUserInfo(username)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	resp := util.RespMsg{
+		Code: 0,
+		Msg:  "ok",
+		Data: user,
+	}
+	w.Write(resp.JSONBytes())
+
+}
+
+// 生产token
 func GenToken(username string) string {
 	ts := fmt.Sprintf("%x", time.Now().Unix())
 	tokenPrefix := util.MD5([]byte(username + ts + "_toknesalt"))
 	return tokenPrefix + ts[:8]
+}
+
+func isTokenValid(token string) bool {
+	if len(token) != 40 {
+		return false
+	}
+	//1.判断token时效性，是否过期，这里是 token的后8位是个时间
+	//2.从数据库中查询
+	//3.对比是否一致
+	return true
 }
